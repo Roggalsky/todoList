@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="stylesheet" type="text/css" href="src/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite + TS</title>
+  </head>
+  <body>
+
+    <div class="list-container">
+      <div class="stacked container">
+        <label>Name:<input/></label>
+        <button>Add todo element</button>
+        <button class="deleteFromAdd">Delete</button>
+      </div>
+      <p class="inaccessible"></p>
+      <div class="mode"></div>
+      <div class="container">
+       <p>List of things to do: </p>
+        <ul class="list">
+        </ul>
+      </div>
+    </div>
+    <div class="banned-to-do stacked">
+      <div class="stacked container 2">
+        <label>Name:<input class="ban-input"/></label>
+        <button class="button-ban">Add banned element</button>
+        <button class="deleteFromBan">Delete</button>
+        <div class="mode-2"></div>
+      </div>
+      <ul class="banned-ul">
+      </ul>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
