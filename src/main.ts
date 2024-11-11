@@ -1,24 +1,33 @@
+// castowanie
+
+// type Left = "left";
+// type Right = "right";
+// type Top = Left | Right;
+
+// const top: Top = "left";
+// const left: Right = top as Right; // zly typ, ale typescript przez casting zmuszony to przyjąć
+
 // document.getElementsByClassName()
 // document.getElementsByTagName()
 // document.getElementById()
 // document.querySelector()
+
+const LIST_MAX_ELEMENTS = 5;
 type Mode = "add" | "wait" | "stop";
-const addTodoButton: HTMLButtonElement | null =
-  document.querySelector("button"); /** Szukamy buttona */
-const addBannButton =
+
+const addTodoButton = document.querySelector("button"); /** Szukamy buttona */
+const addBannButton: HTMLButtonElement | null =
   document.querySelector(".button-ban"); /** szukamu buttona ban lista */
 const deleteFromAddBtn = document.querySelector(".deleteFromAdd");
 const deleteFromBanBtn = document.querySelector(".deleteFromBan");
 const todoInput = document.querySelector("input"); /** Szukamy inputa */
-const banInput = document.querySelector(".ban-input"); // input dla zablokowanych
+const banInput: HTMLInputElement | null = document.querySelector(".ban-input"); // input dla zablokowanych
 const todoList = document.querySelector(".list"); /** Szukamy klsy "list" */
 const banList = document.querySelector(".banned-ul"); // szukamy klasy dla listy dla zabk=lokowanych zadań
 const modeStatusOnPage: Element | null =
   document.querySelector(".mode"); /** Szukamy klasy mode */
 const banModeStatusOnPage = document.querySelector(".mode-2"); //szukamy klasy mode-2
-const showAlert = () => {
-  alert("To zadanie jest niedostępne usuń je z czerwonej listy");
-};
+
 const deleteLastChild = function (list: HTMLUListElement): void {
   if (list.lastChild) {
     list.removeChild(list.lastChild);
@@ -30,8 +39,8 @@ let mode: Mode =
   "add"; /** chcemy zby powczytaniu strony mode add zeby cokolwiek dodać */
 let mode2: Mode =
   "add"; /** chcemy zby powczytaniu strony mode add zeby cokolwiek dodać x2*/
-let arrayOfBanedTasks: String[] = [];
-let arrayOfToDoList: String[] = [];
+let arrayOfBanedTasks: string[] = [];
+let arrayOfToDoList: string[] = [];
 if (modeStatusOnPage) {
   modeStatusOnPage.textContent = mode;
 }
@@ -40,98 +49,92 @@ if (banModeStatusOnPage) {
   banModeStatusOnPage.textContent = mode2;
 }
 
-addTodoButton?.addEventListener("click", () => {
-  /** nasłuchiwać na klikniecie buttona  */
-  // sprawdzic w jakim jestem trybie
-  // jezeli jestem w trybie dodawania,
-  // dodać element z inputa DONE
-  // wyczyścić input DONE
-  // zmienic tryb DONE
-  // disable na inpucie DONE
-  if (mode === "add") {
-    /** jeśli mode = add to wykonaj... */
-    const inputValue =
-      todoInput?.value; /** wartość wpisaną z inputa przypisujemy do zmiennej */
-    if (numberOfLiInUl >= 5) {
-      /** jeśli jest 5 li to */
-      mode = "stop"; /** zmień mode z add na stop */
-      todoInput.disabled = true; /** zablokuj mozliwość wpisywania do inputa */
-      addTodoButton.textContent =
-        "Too Much Elements"; /** zmień tekst na buttonie na too much elements */
-      modeStatusOnPage.textContent = mode;
+const hasListTooManyElements = (elementsInList: number): boolean =>
+  elementsInList >= LIST_MAX_ELEMENTS;
+
+const isTaskBanned = (task: string): boolean =>
+  arrayOfBanedTasks.includes(task);
+
+const createListElement = (taskName: string): HTMLLIElement => {
+  const li =
+    document.createElement("li"); /** tworzymy element li w ul na stronie*/
+  li.textContent =
+    taskName; /** jako text w li przypisz wartość wpisaną do inputa */
+  return li;
+};
+
+const addElementToList = (
+  list: HTMLUListElement,
+  newLI: HTMLLIElement,
+  arr: string[],
+): void => {
+  list.appendChild(newLI); //* dodaj  li jako ostatnie dziecko listy */
+  arr.push(newLI?.textContent ?? "");
+};
+
+const handleAddClick = (listType: "todo" | "ban") => (_: any) => {
+  let input = listType === "todo" ? todoInput : banInput;
+  let button: HTMLButtonElement | null =
+    listType === "todo" ? addTodoButton : addBannButton;
+  let modeStatus = listType === "todo" ? modeStatusOnPage : banModeStatusOnPage;
+  let list = listType === "todo" ? todoList : banList;
+  let array = listType === "todo" ? arrayOfToDoList : arrayOfBanedTasks;
+  let listMode = listType === "todo" ? mode : mode2;
+
+  if (!input || !button || !modeStatus || !list || !array) return;
+
+  const setTooManyElementsStatus = () => {
+    listMode = "stop"; /** zmień mode z add na stop */
+    input.disabled = true; /** zablokuj mozliwość wpisywania do inputa */
+    button.textContent =
+      "Too Much Elements"; /** zmień tekst na buttonie na too much elements */
+    modeStatus.textContent = listMode;
+  };
+
+  const setTaskIsBanned = () => {
+    modeStatus.textContent = listMode;
+    alert("To zadanie jest niedostępne usuń je z czerwonej listy");
+    input.value = "";
+  };
+
+  const setAfterAddItemStatus = () => {
+    input.value = ""; //* usuń to co wpisaliśmy do inputa
+    listMode = "wait"; /** zmień mode z add na wait */
+    input.disabled = true; /** zablokuj mozliwość wpisywania do inputa */
+    button.textContent = "Waiting"; /** zmień tekst na buttonie na waiting */
+    modeStatus.textContent = listMode; /** zmień tryb na stronir na wait */
+  };
+
+  if (listMode === "wait") {
+    if (hasListTooManyElements(array.length)) {
+      setTooManyElementsStatus();
       return;
     }
-    for (let i = 0; i < arrayOfBanedTasks.length; i++) {
-      if (inputValue === arrayOfBanedTasks[i]) {
-        console.log("zgadza sie");
-        modeStatusOnPage.textContent = mode;
-        showAlert();
-        todoInput.value = "";
-        return;
-      }
+
+    const inputValue =
+      input.value; /** wartość wpisaną z inputa przypisujemy do zmiennej */
+
+    if (isTaskBanned(inputValue)) {
+      setTaskIsBanned();
+      return;
     }
-    const li =
-      document.createElement("li"); /** tworzymy element li w ul na stronie*/
-    li.textContent =
-      inputValue; /** jako text w li przypisz wartość wpisaną do inputa */
-    todoList.appendChild(li); //* dodaj  li jako ostatnie dziecko listy */
-    numberOfLiInUl++; /** dodajemy 1 do zeby kontrolowac ilosc li */
-    arrayOfToDoList.push(li.textContent);
-    console.log(arrayOfToDoList);
-    todoInput.value = ""; //* usuń to co wpisaliśmy do inputa
-    mode = "wait"; /** zmień mode z add na wait */
-    todoInput.disabled = true; /** zablokuj mozliwość wpisywania do inputa */
-    addTodoButton.textContent =
-      "Waiting"; /** zmień tekst na buttonie na waiting */
-    modeStatusOnPage.textContent = mode; /** zmień tryb na stronir na wait */
+    const newElement = createListElement(inputValue);
+    addElementToList(list as HTMLUListElement, newElement, array);
+
+    setAfterAddItemStatus();
     return; // kończymy i czekamy na kolejne klikniecie w button
   }
-  // jezeli nie jestem w trybie dodawania,
-  // zmienic tryb na tryb dodawania
-  // enable na inpucie
-  if (mode === "wait") {
-    /** jeśli mode = wait to wykonaj... */
-    mode = "add"; /** zmień mode na add */
-    modeStatusOnPage.textContent = mode; /**  zmień trybna stronie na add */
-    todoInput.disabled = false; // odblikuj input
-    addTodoButton.textContent = "Add todo element"; // zmień napis w buttonie na add todo....
+
+  if (listMode === "wait") {
+    listMode = "add"; /** zmień mode na add */
+    modeStatus.textContent = listMode; /**  zmień trybna stronie na add */
+    input.disabled = false; // odblikuj input
+    button.textContent = "Add todo element"; // zmień napis w buttonie na add todo....
   }
-});
-// @ts-ignore
-addBannButton.addEventListener("click", () => {
-  // na kliknięcie wykonaj
-  if (mode2 === "add") {
-    // jeśli mode2 == add to
-    const banValue = banInput.value; // banValue to wartość z inputa
-    if (numberOfBanLiInUl >= 5) {
-      mode2 = "stop";
-      banInput.disabled = true;
-      addBannButton.textContent = "Too Much Elements";
-      banModeStatusOnPage.textContent = mode2;
-      return;
-    }
-    const li = document.createElement("li"); // zmienna li to tworzenie nowego li
-    li.textContent = banValue; // to co jest w inpucie wpisz do nowo powstałego li
-    banList?.appendChild(li); // dla ban list ostatnie dziecko (zrób nowe li)
-    numberOfBanLiInUl++; // dodaj 1 do zmiennej, aby kontrolować ilość li
-    banInput.value = ""; // usówamy to co wpisano do inputa
-    mode2 = "wait"; // zmieniamy mode na wait
-    banInput.disabled = true; // blikujemy input ban
-    addBannButton.textContent = "Waiting"; //zmieniamy napis na buttonie na waiting
-    banModeStatusOnPage.textContent = mode2; // zminiemy napis na stronie pod aktualny mode czyli "wait"
-    arrayOfBanedTasks.push(banValue);
-    console.log(arrayOfBanedTasks);
-    return;
-  }
-  if (mode2 === "wait") {
-    // jeśli mode = wait
-    mode2 = "add"; // zmień mode na add
-    banModeStatusOnPage.textContent = mode2; //
-    banInput.disabled = false;
-    addBannButton.textContent = "Add banned element";
-    return;
-  }
-});
+};
+
+addTodoButton?.addEventListener("click", handleAddClick("todo"));
+addBannButton?.addEventListener("click", handleAddClick("ban"));
 
 deleteFromAddBtn.addEventListener("click", () => {
   if (arrayOfToDoList.length === 0) {
